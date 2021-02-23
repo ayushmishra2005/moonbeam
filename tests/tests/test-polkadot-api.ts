@@ -4,6 +4,7 @@ import { step } from "mocha-steps";
 
 import { createAndFinalizeBlock, describeWithMoonbeam } from "./util";
 import { AnyTuple, IEvent } from "@polkadot/types/types";
+import { TEST_CONTRACT_BYTECODE, TEST_CONTRACT_BYTECODE_INCR } from "./constants";
 
 describeWithMoonbeam("Moonbeam Polkadot API", `simple-specs.json`, (context) => {
   const GENESIS_ACCOUNT = "0x6be02d1d3665660d22ff9624b7be0551ee1ac91b";
@@ -116,5 +117,52 @@ describeWithMoonbeam("Moonbeam Polkadot API", `simple-specs.json`, (context) => 
           throw new Error(`Unexpected extrinsic`);
       }
     });
+  });
+  it.only("contract creation should return transaction hash", async function () {
+    // this.timeout(15000);
+    const tx = await context.web3.eth.accounts.signTransaction(
+      {
+        from: GENESIS_ACCOUNT,
+        data: TEST_CONTRACT_BYTECODE_INCR,
+        value: "0x00",
+        gasPrice: "0x01",
+        gas: "0x100000",
+      },
+      GENESIS_ACCOUNT_PRIVATE_KEY
+    );
+    console.log(await context.polkadotApi.tx.evm.create(tx.rawTransaction));
+    // console.log(await context.polkadotApi.tx.ethereum.transact(tx.rawTransaction));
+    expect(false);
+    // expect(
+    //   await customRequest(context.web3, "eth_sendRawTransaction", [tx.rawTransaction])
+    // ).to.deep.equal({
+    //   id: 1,
+    //   jsonrpc: "2.0",
+    //   result: "0xe87ed993e4d186748404a52a2d13612eef8356331f30fa6b3fb9bc2c16be2e9c",
+    // });
+
+    // // Verify the contract is not yet stored
+    // expect(
+    //   await customRequest(context.web3, "eth_getCode", [FIRST_CONTRACT_ADDRESS])
+    // ).to.deep.equal({
+    //   id: 1,
+    //   jsonrpc: "2.0",
+    //   result: "0x",
+    // });
+
+    // // Verify the contract is stored after the block is produced
+    // await createAndFinalizeBlock(context.polkadotApi);
+    // expect(
+    //   await customRequest(context.web3, "eth_getCode", [FIRST_CONTRACT_ADDRESS])
+    // ).to.deep.equal({
+    //   id: 1,
+    //   jsonrpc: "2.0",
+    //   result:
+    //     "0x6080604052348015600f57600080fd5b506004361060285760003560e01c8063c6888fa114602d575b60" +
+    //     "0080fd5b605660048036036020811015604157600080fd5b8101908080359060200190929190505050606c" +
+    //     "565b6040518082815260200191505060405180910390f35b600060078202905091905056fea265627a7a72" +
+    //     "315820f06085b229f27f9ad48b2ff3dd9714350c1698a37853a30136fa6c5a7762af7364736f6c63430005" +
+    //     "110032",
+    // });
   });
 });
